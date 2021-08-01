@@ -34,23 +34,26 @@ public interface IStore {
     String getType();
 
     boolean setnx(Object key, byte[] data);
+
     boolean setnx(Object key, byte[] data, Duration d);
 
     Map<Object, Boolean> msetnx(Map<Object, byte[]> map);
+
     Map<Object, Boolean> msetnx(Table<Object, byte[], Duration> table);
 
     boolean set(Object key, byte[] data);
+
     boolean set(Object key, byte[] data, Duration d);
 
     Map<Object, Boolean> mset(Map<Object, byte[]> map);
+
     Map<Object, Boolean> mset(Table<Object, byte[], Duration> table);
 
     byte[] get(Object key);
-    List<byte[]> mget(Object ...keys);
 
-    Map<Object, Object> mget(Map<Object, Class<?>> map);
+    List<byte[]> mget(Object... keys);
 
-    <K> void del(K ...keys);
+    void del(Object... keys);
 
     ICodec getKeyCodec();
 

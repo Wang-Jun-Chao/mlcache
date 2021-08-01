@@ -90,6 +90,10 @@ public class LettuceStore extends AbstractStore {
     @Override
     public boolean setnx(Object key, byte[] data, Duration d) {
 
+        if (d == null) {
+            d = DEFAULT_LIVE_TIME;
+        }
+
         String[] keys = new String[]{this.getKeyCodec().getString(key)};
         String[] args = new String[]{this.getValueCodec().getString(data), Long.toString(d.toMillis())};
 
@@ -140,8 +144,9 @@ public class LettuceStore extends AbstractStore {
         List<RedisFuture<Boolean>> futures = Lists.newArrayList();
         List<Object> keyList = Lists.newArrayListWithCapacity(table.size());
         table.cellSet().forEach(c -> {
+            Duration d = c.getValue() == null ? DEFAULT_LIVE_TIME : c.getValue();
             String[] keys = new String[]{this.getKeyCodec().getString(c.getRowKey())};
-            String[] args = new String[]{this.getValueCodec().getString(c.getColumnKey()), Long.toString(c.getValue().toMillis())};
+            String[] args = new String[]{this.getValueCodec().getString(c.getColumnKey()), Long.toString(d.toMillis())};
 
             keyList.add(c.getRowKey());
             RedisFuture<Boolean> future = asyncCommands.eval(SETNXTTL, ScriptOutputType.BOOLEAN, keys, args);
@@ -175,6 +180,9 @@ public class LettuceStore extends AbstractStore {
     public boolean set(Object key, byte[] data, Duration d) {
         String sk = this.getKeyCodec().getString(key);
         String sd = this.getValueCodec().getString(data);
+        if (d == null) {
+            d = DEFAULT_LIVE_TIME;
+        }
         SetArgs ex = SetArgs.Builder.ex(d);
         String ok = getSyncCommands().set(sk, sd, ex);
         return OK.equalsIgnoreCase(ok);
@@ -210,7 +218,8 @@ public class LettuceStore extends AbstractStore {
         table.cellSet().forEach(c -> {
             String sk = this.getKeyCodec().getString(c.getRowKey());
             String sd = this.getValueCodec().getString(c.getColumnKey());
-            SetArgs ex = SetArgs.Builder.ex(c.getValue());
+            Duration d = c.getValue() == null ? DEFAULT_LIVE_TIME : c.getValue();
+            SetArgs ex = SetArgs.Builder.ex(d);
             futures.add(asyncCommands.set(sk, sd, ex));
         });
 
@@ -257,44 +266,7 @@ public class LettuceStore extends AbstractStore {
 
 
     @Override
-    public Map<Object, Object> mget(Map<Object, Class<?>> map) {
-
-        if (CollectionUtils.isEmpty(map)) {
-            return new HashMap<>();
-        }
-        final Map<String, Class<?>> m2 = new HashMap<>(map.size());
-        // key 和他对应的 String
-        final Map<String, Object> s2o = new HashMap<>(map.size());
-        map.forEach((k, v) -> {
-            String s = this.getKeyCodec().getString(k);
-            m2.put(s, v);
-            s2o.put(s, k);
-        });
-
-        List<KeyValue<String, String>> rdsResult = getSyncCommands().mget(m2.keySet().toArray(new String[]{}));
-
-        Map<Object, Object> result = new HashMap<>();
-        if (CollectionUtils.isEmpty(rdsResult)) {
-            return result;
-        }
-
-        for (KeyValue<String, String> kv : rdsResult) {
-            String k = kv.getKey();
-            String v = kv.getValue();
-            if (v == null) {
-                result.put(s2o.get(k), null);
-            } else {
-                Object o = this.getValueCodec().getObject(m2.get(k), v);
-                result.put(s2o.get(k), o);
-            }
-        }
-
-        return result;
-    }
-
-    @SafeVarargs
-    @Override
-    public final <K> void del(K... keys) {
+    public void del(Object... keys) {
 
         if (CollectionUtils.isEmpty(keys)) {
             return;
@@ -312,14 +284,14 @@ public class LettuceStore extends AbstractStore {
     //////////////////////////////////
 
     private Map<String, String> getMap(Map<Object, byte[]> map) {
-        final Map<String, String> m2 = new HashMap<>();
+        final Map<String, String> result = new HashMap<>();
         map.forEach((k, v) -> {
-            m2.put(
+            result.put(
                     this.getKeyCodec().getString(k),
                     this.getValueCodec().getString(v)
             );
         });
-        return m2;
+        return result;
     }
 
     /**
@@ -348,7 +320,7 @@ public class LettuceStore extends AbstractStore {
      * @param futures
      * @return
      */
-    private static <T> List<T> awaitAll(long timeout, TimeUnit unit, Future<T>... futures) {
+    private static <T> List<T> awaitAll(final long timeout, TimeUnit unit, Future<T>... futures) {
 
         if (CollectionUtils.isEmpty(futures)) {
             return Lists.newArrayList();

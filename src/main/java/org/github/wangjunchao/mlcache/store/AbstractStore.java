@@ -7,6 +7,8 @@ import lombok.experimental.SuperBuilder;
 import org.github.wangjunchao.mlcache.codec.ICodec;
 import org.github.wangjunchao.mlcache.metrics.IMetrics;
 
+import java.time.Duration;
+
 /**
  * <pre>
  *
@@ -22,6 +24,8 @@ import org.github.wangjunchao.mlcache.metrics.IMetrics;
 @NoArgsConstructor
 @AllArgsConstructor
 public abstract class AbstractStore implements IStore {
+    protected final static Duration DEFAULT_LIVE_TIME = Duration.ofMinutes(5);
+
     protected String name;
     protected String type;
     protected ICodec keyCodec;
