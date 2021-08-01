@@ -1,13 +1,11 @@
 package org.github.wangjunchao.mlcache.store;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.github.wangjunchao.mlcache.key.IKeyCreator;
+import org.github.wangjunchao.mlcache.codec.ICodec;
 import org.github.wangjunchao.mlcache.metrics.IMetrics;
-import org.github.wangjunchao.mlcache.value.IValueCreator;
 
 /**
  * <pre>
@@ -26,7 +24,7 @@ import org.github.wangjunchao.mlcache.value.IValueCreator;
 public abstract class AbstractStore implements IStore {
     protected String name;
     protected String type;
-    protected IKeyCreator keyCreator;
-    protected IValueCreator valueCreator;
+    protected ICodec keyCodec;
+    protected ICodec valueCodec;
     protected IMetrics metrics;
 }

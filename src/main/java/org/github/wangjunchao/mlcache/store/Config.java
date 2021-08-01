@@ -3,9 +3,8 @@ package org.github.wangjunchao.mlcache.store;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.github.wangjunchao.mlcache.key.IKeyCreator;
+import org.github.wangjunchao.mlcache.codec.ICodec;
 import org.github.wangjunchao.mlcache.metrics.IMetrics;
-import org.github.wangjunchao.mlcache.value.IValueCreator;
 
 /**
  * <pre>
@@ -23,8 +22,8 @@ import org.github.wangjunchao.mlcache.value.IValueCreator;
 public class Config {
     private String name;
     private String type;
-    private IKeyCreator keyCreator;
-    private IValueCreator valueCreator;
+    private ICodec keyCodec;
+    private ICodec valueCode;
     private Options options;
     private IMetrics metrics;
 }

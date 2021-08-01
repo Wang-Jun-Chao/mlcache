@@ -1,9 +1,8 @@
 package org.github.wangjunchao.mlcache.store;
 
 import com.google.common.collect.Table;
-import org.github.wangjunchao.mlcache.key.IKeyCreator;
+import org.github.wangjunchao.mlcache.codec.ICodec;
 import org.github.wangjunchao.mlcache.metrics.IMetrics;
-import org.github.wangjunchao.mlcache.value.IValueCreator;
 
 import java.time.Duration;
 import java.util.List;
@@ -46,15 +45,16 @@ public interface IStore {
     Map<Object, Boolean> mset(Map<Object, byte[]> map);
     Map<Object, Boolean> mset(Table<Object, byte[], Duration> table);
 
-    <V> V get(Object key, Class<V> clazz);
+    byte[] get(Object key);
+    List<byte[]> mget(Object ...keys);
 
     Map<Object, Object> mget(Map<Object, Class<?>> map);
 
-    <K> void delete(K ...keys);
+    <K> void del(K ...keys);
 
-    IKeyCreator getKeyCreator();
+    ICodec getKeyCodec();
 
     IMetrics getMetrics();
 
-    IValueCreator getValueCreator();
+    ICodec getValueCodec();
 }
